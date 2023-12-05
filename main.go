@@ -3,10 +3,28 @@ package main
 import "fmt"
 
 func main() {
-	var (
-		num1 int
-		num2 int
-	)
-	fmt.Scan(&num1, &num2)
-	fmt.Println(num1 + num2)
+	arr := [5]int{0, 1: 12, 23, 34, 45}
+
+	for idx, elem := range arr {
+		fmt.Println(idx, ":", elem)
+	}
+	// 
+	// or
+	// 
+	// for idx := range arr {
+	// 	fmt.Println(arr[idx]) // 
+	// }
+	//
+    // or
+    //
+	// for _, elem := range arr {
+	// 	fmt.Println(elem)
+	// }
+	// 
+	// or
+    // 
+    // for i := 0; i < len(arr); i++ {
+    //     fmt.Println(arr[i])
+    // }
+	// 
 }
