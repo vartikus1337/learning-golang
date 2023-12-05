@@ -1,30 +1,26 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
-	arr := [5]int{0, 1: 12, 23, 34, 45}
-
-	for idx, elem := range arr {
-		fmt.Println(idx, ":", elem)
+	// First: 10 numbers for array
+	// Second: 3 pair for change index numbers in array
+	var (
+		to        uint8
+		from      uint8
+		workArray [10]uint8
+	)
+	for i := 0; i < 10; i++ {
+		fmt.Scan(&workArray[i])
 	}
-	// 
-	// or
-	// 
-	// for idx := range arr {
-	// 	fmt.Println(arr[idx]) // 
-	// }
-	//
-    // or
-    //
-	// for _, elem := range arr {
-	// 	fmt.Println(elem)
-	// }
-	// 
-	// or
-    // 
-    // for i := 0; i < len(arr); i++ {
-    //     fmt.Println(arr[i])
-    // }
-	// 
+	for i := 0; i < 3; i++ {
+		fmt.Scan(&to)
+		fmt.Scan(&from)
+		workArray[to], workArray[from] = workArray[from], workArray[to]
+	}
+	for _, value := range workArray {
+		fmt.Print(value, " ")
+	}
 }
