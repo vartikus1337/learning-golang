@@ -1,23 +1,32 @@
-// На вход подается строка. Нужно определить, является ли она правильной или нет.
-// Правильная строка начинается с заглавной буквы и заканчивается точкой.
-// Если строка правильная - вывести Right иначе - вывести Wrong
+// Вы должны вызвать функцию divide которая делит два числа, но она возвращает не только результат деления, но и информацию об ошибке.
+// В случае какой-либо ошибки вы должны вывести "ошибка", если ошибки нет - результат функции.
+// Функция divide(a int, b int) (int, error) получает на вход два числа которые нужно поделить и возвращает результат (int) и ошибку (error)
 
 package main
 
 import (
-	"bufio"
-	"os"
-	"strings"
+	"errors"
 	"fmt"
-	"unicode"
 )
 
-func task1() {
-	text, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-	textRune := []rune(text) 
-	if strings.HasSuffix(text, ".") && unicode.IsUpper(textRune[0]) {
-		fmt.Println("Right")
+func task() {
+	var (
+		a, b int
+	)
+	_, err := fmt.Scan(&a, &b)
+	if err != nil {
+		fmt.Println("ошибка")
 	} else {
-		fmt.Println("Wrong")
+		_, err := divide(a, b)
+		if err != nil {
+			fmt.Println("ошибка")
+		}
 	}
+}
+
+func divide(a, b int) (int, error) {
+	if b == 0 {
+		return 0, errors.New("ошибка")
+	}
+	return a / b, nil
 }

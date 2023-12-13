@@ -1,58 +1,42 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	// "unicode/utf8"
 )
 
-func stringTest() {
-	var s string = "Это строка"
-	fmt.Printf("Длина строки: %d байт\n", len(s))
-	s = s + " Новая строка"
-	fmt.Printf("%v\n", s)
-	for _, b := range s {
-		fmt.Printf("%v ", b)
+func main() {
+	var input int
+	_, err := fmt.Scan(&input)
+	if err!= nil {
+        fmt.Println("Проверьте типы входных параметров")
+    } else {
+		fmt.Println(input * 3)
 	}
-	fmt.Println()
-	for _, b := range s {
-		fmt.Printf("%v ", string(b))
+	// test_error()
+
+	err_test := error_test()
+	if err_test != nil {
+		fmt.Println(err_test.Error())
 	}
 }
 
-func stringIsBytes() {
-	bs := []byte("Это байтовый срез")
-
-	fmt.Printf("Байтовый срез внутри: %v\n", bs)
-
-	for i := range bs {
-		if bs[i]%2 == 0 {
-			bs[i] = bs[i] + 1
-			continue
-		}
-		bs[i] = bs[i] - 1
-	}
-
-	fmt.Printf("Измененный байтовый срез в виде строки: %s", bs)
+func test_error() {
+	err := errors.New("my error")
+    fmt.Println("", err)
 }
 
-func runeString() {
-	rs := []rune("Срез рун")
-	fmt.Printf("Срез рун внутри: %v\n", string(rs))
-	for i := range rs {
-		fmt.Println(rs[i])
-		if rs[i] == 'р' {
-			rs[i] = '*'
-		}
-	}
-	fmt.Println(string(rs))
+func error_test() error {
+	i := 0
+	fmt.Println("Выполнение функции error_test() 1")
+	i++ // 1
+	defer deferTest(i) // Попало 1
+	i++ // 2
+	fmt.Println("Выполнение функции error_test() 2")
+	return errors.New("ошибка в error_test()")
 }
 
-// func main() {
-// 	// len(возвращает количество байтов в строке)
-// 	var en = "english"
-// 	var ru = "русский"
-// 	fmt.Println(len(en), len(ru))
-// 	fmt.Println(utf8.RuneCountInString(en), utf8.RuneCountInString(ru))
-// }
-
-//  https://pkg.go.dev/strings
+func deferTest(i int) {
+	fmt.Println("Финал error_test()")
+	fmt.Println("i:", i)
+}
