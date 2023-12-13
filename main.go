@@ -1,48 +1,58 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	// "unicode/utf8"
+)
 
-// Метод для класса
-func (b *B) GetValueB() string {
-	return string(b.b)
+func stringTest() {
+	var s string = "Это строка"
+	fmt.Printf("Длина строки: %d байт\n", len(s))
+	s = s + " Новая строка"
+	fmt.Printf("%v\n", s)
+	for _, b := range s {
+		fmt.Printf("%v ", b)
+	}
+	fmt.Println()
+	for _, b := range s {
+		fmt.Printf("%v ", string(b))
+	}
 }
 
-// Функция для класса
-func getAFromB(b B) int {
-	return b.A.a
+func stringIsBytes() {
+	bs := []byte("Это байтовый срез")
+
+	fmt.Printf("Байтовый срез внутри: %v\n", bs)
+
+	for i := range bs {
+		if bs[i]%2 == 0 {
+			bs[i] = bs[i] + 1
+			continue
+		}
+		bs[i] = bs[i] - 1
+	}
+
+	fmt.Printf("Измененный байтовый срез в виде строки: %s", bs)
 }
 
-func main() {
-	// Инициализация структур
-	// var t Test
-	//  t := Test{}
-	//  t := new(Test) - pointer
-
-	//  Task struct
-	c := new(B)
-
-	c.A.a = 1
-	c.b = 2
-
-	fmt.Println(getAFromB(*c))
-
-	a := A{1}
-
-	b := B{a, 2}
-
-	fmt.Println(getAFromB(b))
-
-	fmt.Println(b.GetValueB())
-
-	testStruct := Gun{true, 1, 1}
-	fmt.Println(testStruct.Shoot())
-	fmt.Println(testStruct.Shoot())
-
-	// Math struct
-	var rx1, ry1 float64 = 0, 0
-	var rx2, ry2 float64 = 10, 10
-	var cx, cy, cr float64 = 0, 0, 5
-
-	fmt.Println(rectangleArea(rx1, ry1, rx2, ry2))
-	fmt.Println(circleArea(cx, cy, cr))
+func runeString() {
+	rs := []rune("Срез рун")
+	fmt.Printf("Срез рун внутри: %v\n", string(rs))
+	for i := range rs {
+		fmt.Println(rs[i])
+		if rs[i] == 'р' {
+			rs[i] = '*'
+		}
+	}
+	fmt.Println(string(rs))
 }
+
+// func main() {
+// 	// len(возвращает количество байтов в строке)
+// 	var en = "english"
+// 	var ru = "русский"
+// 	fmt.Println(len(en), len(ru))
+// 	fmt.Println(utf8.RuneCountInString(en), utf8.RuneCountInString(ru))
+// }
+
+//  https://pkg.go.dev/strings

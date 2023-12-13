@@ -1,44 +1,23 @@
+// На вход подается строка. Нужно определить, является ли она правильной или нет.
+// Правильная строка начинается с заглавной буквы и заканчивается точкой.
+// Если строка правильная - вывести Right иначе - вывести Wrong
+
 package main
 
-type Gun struct {
-	On    bool
-	Ammo  int
-	Power int
-}
+import (
+	"bufio"
+	"os"
+	"strings"
+	"fmt"
+	"unicode"
+)
 
-func (g *Gun) Shoot() bool {
-	if !g.On {
-		return false
-	}
-
-	if g.Ammo > 0 {
-		g.Ammo--
-		return true
+func task1() {
+	text, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+	textRune := []rune(text) 
+	if strings.HasSuffix(text, ".") && unicode.IsUpper(textRune[0]) {
+		fmt.Println("Right")
 	} else {
-		return false
+		fmt.Println("Wrong")
 	}
 }
-
-func (g *Gun) RideBike() bool {
-	if !g.On {
-		return false
-	}
-
-	if g.Power > 0 {
-		g.Power--
-		return true
-	} else {
-		return true
-	}
-}
-
-type A struct {
-	a int
-}
-
-type B struct {
-	A // По умолчанию указывается тип A в переменную A
-	b int
-}
-
-
