@@ -16,32 +16,48 @@ package main
 import (
 	"strconv"
 	"unicode"
+	//  Для друг решен
+	"strings"
 )
 
 func main() {
-	adding("%^80 hhhhh20&&&&nd")
+	adding("%^80", "hhhhh20&&&&nd")
 }
 
-func adding(s string) int64 {
+func adding(s1, s2 string) int64 {
 	var (
-		strsNum []string
-		strNum string
-		sum int64
+		num1,
+		num2 string
 	)
-	for _, symbol := range s {
-		if unicode.IsDigit(symbol) {
-			strNum += string(symbol)
-		} else {
-			if strNum == "" {
-				continue
-            }
-			strsNum = append(strsNum, strNum)
-			strNum = ""
+	 
+	for _, symbol1 := range s1 {
+		if unicode.IsDigit(symbol1) {
+			num1 += string(symbol1)
 		}
 	}
-	for _, strNum = range strsNum {
-		res, _ := strconv.ParseInt(strNum, 0, 64)
-		sum += res
+
+    for _, symbol2 := range s2 {
+		if unicode.IsDigit(symbol2) {
+			num2 += string(symbol2)
+		}
 	}
-	return sum
+
+	res1 , _ := strconv.ParseInt(num1, 0, 64)
+	res2 , _ := strconv.ParseInt(num2, 0, 64)
+	return res1 + res2
 }
+
+//  Другое решение:
+
+func adding2(s1, s2 string) int64 {
+
+	
+	s1 = strings.TrimFunc(s1, func(r rune) bool { return !unicode.IsDigit(r) })
+	s2 = strings.TrimFunc(s2, func(r rune) bool { return !unicode.IsDigit(r) })
+
+	i1, _ := strconv.ParseInt(s1, 10, 64)
+	i2, _ := strconv.ParseInt(s2, 10, 64)
+
+	return i1 + i2
+}
+
