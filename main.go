@@ -1,4 +1,4 @@
-// Задание
+// Задание https://stepik.org/lesson/350788/step/10?unit=334666
 
 package main
 
