@@ -1,74 +1,97 @@
-// Используем анонимные функции на практике.
-
-// Внутри функции main (объявлять ее не нужно) вы должны объявить функцию вида func(uint) uint,
-// которую внутри функции main в дальнейшем можно будет вызвать по имени fn.
-
-// Функция на вход получает целое положительное число (uint), возвращает число того же типа в котором отсутствуют нечетные цифры и цифра 0.
-// Если же получившееся число равно 0, то возвращается число 100. Цифры в возвращаемом числе имеют тот же порядок, что и в исходном числе.
-
-// 727178 -> 28
-
-
+// Задание
 
 package main
 
-import (
-	"fmt"
-	"strconv"
-)
+import "fmt"
+
+
+func readTask() (interface{}, interface{}, interface{}) {
+	return interface{}(1.123123), interface{}(2.7343), interface{}("*")
+}
 
 func main() {
-	fn := func(n uint) uint {
-		var strFormatted string
-		str := strconv.FormatUint(uint64(n), 10)
-		for index, c := range str {
-			res, _ := strconv.Atoi(string(c))
-			if str[index] == '0' {
-				continue
-			}
-			if res%2 == 0 {
-				strFormatted += string(str[index])
-			}
-		}
-		if len(strFormatted) == 0 {
-			strFormatted = "100"
-		}
-		res, _ := strconv.ParseUint(strFormatted, 10, 32)
-		return uint(res)
-	}
-	fmt.Println(fn(1203))
+	value1, value2, operation := readTask() // исходные данные получаются с помощью этой функции
+                                            // все полученные значения имеют тип пустого интерфейса
+    if _, ok := value1.(float64); !ok {
+        fmt.Printf("value=%v: %T", value1, value1)
+        return 
+    }
+    if _, ok := value2.(float64); !ok {
+        fmt.Printf("value=%v: %T", value2, value2)
+        return 
+    }
+    if _, ok := operation.(string); !ok {
+        fmt.Println("неизвестная операция")
+        return
+    }
+    switch o := operation.(string); o {
+        case "+":
+            fmt.Printf("%.4f", value1.(float64) + value2.(float64))
+        case "-":
+            fmt.Printf("%.4f", value1.(float64) - value2.(float64))
+        case "*":
+            fmt.Printf("%.4f", value1.(float64) * value2.(float64))
+        case "/":
+            fmt.Printf("%.4f", value1.(float64) / value2.(float64))
+        default:
+            fmt.Println("неизвестная операция")
+    }
 }
 
-//  Как использование может даже зайти:
-//  defer func() {fmt.Println("defer в чём то")}(); panic()
-
-// Другие решения:
 func anotherSolution() {
-	fn := func(X uint) uint {
-		var x uint
-		s := strconv.FormatUint(uint64(X), 10)
-		for i := range s {
-			if s[i]%2 == 0 && s[i] != '0' {
-				x = x*10 + uint(s[i]-'0')
-			}
-		}
-		if x == 0 {
-			x = 100
-		}
-		return x
+	value1, value2, operation := readTask()
+
+	v1, ok := value1.(float64)
+	if !ok {
+		fmt.Printf("value=%v: %T", value1, value1)
+		return
 	}
-	fmt.Println(fn(1203))
-	fn2 := func(x uint) (y uint) {
-		for k := uint(1); x > 0; x /= 10 {
-			if d := x % 10; d%2 == 0 && d != 0 {
-				y += k * d
-				k *= 10
-			}
-		}
-		if y == 0 {
-			y = 100
-		}
-		return y
+
+	v2, ok := value2.(float64)
+	if !ok {
+		fmt.Printf("value=%v: %T", value2, value2)
+		return
 	}
-	fmt.Println(fn2(1203))
+
+	switch operation.(string) {
+	case "+":
+		fmt.Printf("%.4f", v1+v2)
+	case "-":
+		fmt.Printf("%.4f", v1-v2)
+	case "*":
+		fmt.Printf("%.4f", v1*v2)
+	case "/":
+		fmt.Printf("%.4f", v1/v2)
+	default:
+		fmt.Println("неизвестная операция")
+	}
 }
+func test() {
+	var i1 interface{} = true
+	var i2 interface{} = 2.0120012010210
+	var operation interface{} = "/"
+
+	
+
+	if _, ok := i1.(float64); !ok {
+        fmt.Printf("value=%v: %T", i1, i1)
+        return 
+    }
+    if f2, ok := i2.(float64); !ok {
+        fmt.Printf("value=%v;%T", f2, f2)
+        return 
+    }
+    if _, ok := operation.(string); !ok {
+        fmt.Println("неизвестная операция")
+        return
+    }
+
+	switch o := operation.(string); o {
+		case "/":
+			fmt.Printf("%.4f", i1.(float64) / i2.(float64))
+		default:
+			fmt.Println("неизвестная операция")
+	}
+
+}
+
