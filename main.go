@@ -1,3 +1,15 @@
+// Используем анонимные функции на практике.
+
+// Внутри функции main (объявлять ее не нужно) вы должны объявить функцию вида func(uint) uint,
+// которую внутри функции main в дальнейшем можно будет вызвать по имени fn.
+
+// Функция на вход получает целое положительное число (uint), возвращает число того же типа в котором отсутствуют нечетные цифры и цифра 0.
+// Если же получившееся число равно 0, то возвращается число 100. Цифры в возвращаемом числе имеют тот же порядок, что и в исходном числе.
+
+// 727178 -> 28
+
+
+
 package main
 
 import (
@@ -5,56 +17,58 @@ import (
 	"strconv"
 )
 
-func ok() {
-	age := 1337
-	fmt.Println("Привет мне " + strconv.Itoa(age) + " лет")
-	// или res, err := strconv.ParseInt(age, 10, 0)
-
-	var f float64 = 1.3223
-	// 1 параметр - число для конвертации
-	// fmt - форматирование
-	// prec - точность (кол-во знаков после запятой)
-	// bitSize - 32 или 64 (32 для float32, 64 для float64)
-	fmt.Println(strconv.FormatFloat(f, 'f', 2, 64)) // 1.01
-
-	// Возможные форматы fmt:
-	// 'f' (-ddd.dddd, no exponent),
-	// 'b' (-ddddp±ddd, a binary exponent),
-	// 'e' (-d.dddde±dd, a decimal exponent),
-	// 'E' (-d.ddddE±dd, a decimal exponent),
-	// 'g' ('e' for large exponents, 'f' otherwise),
-	// 'G' ('E' for large exponents, 'f' otherwise),
-	// 'x' (-0xd.ddddp±ddd, a hexadecimal fraction and binary exponent), or
-	// 'X' (-0Xd.ddddP±ddd, a hexadecimal fraction and binary exponent).
-	var fb float64 = 2222 * 1023 * 245 * 2 * 52
-	fmt.Println(strconv.FormatFloat(fb, 'e', -1, 64)) // 5.791874088e+10
-
-	//  https://yourbasic.org/golang/fmt-printf-reference-cheat-sheet/
-
-	var b bool = true
-	fmt.Println(strconv.FormatBool(b))
-
-	str1 := "10"
-	str2 := "20"
-
-	str1Int, err := strconv.Atoi(str1)
-	if err != nil {
-		fmt.Println(err)
+func main() {
+	fn := func(n uint) uint {
+		var strFormatted string
+		str := strconv.FormatUint(uint64(n), 10)
+		for index, c := range str {
+			res, _ := strconv.Atoi(string(c))
+			if str[index] == '0' {
+				continue
+			}
+			if res%2 == 0 {
+				strFormatted += string(str[index])
+			}
+		}
+		if len(strFormatted) == 0 {
+			strFormatted = "100"
+		}
+		res, _ := strconv.ParseUint(strFormatted, 10, 32)
+		return uint(res)
 	}
+	fmt.Println(fn(1203))
+}
 
-	str2Int, err := strconv.Atoi(str2)
-	if err != nil {
-		fmt.Println(err)
+//  Как использование может даже зайти:
+//  defer func() {fmt.Println("defer в чём то")}(); panic()
+
+// Другие решения:
+func anotherSolution() {
+	fn := func(X uint) uint {
+		var x uint
+		s := strconv.FormatUint(uint64(X), 10)
+		for i := range s {
+			if s[i]%2 == 0 && s[i] != '0' {
+				x = x*10 + uint(s[i]-'0')
+			}
+		}
+		if x == 0 {
+			x = 100
+		}
+		return x
 	}
-	fmt.Println(str1Int - str2Int)
-
-	float := "1.0000000012345678"
-	result32, _ := strconv.ParseFloat(float, 32)
-	result64, _ := strconv.ParseFloat(float, 64)
-	fmt.Println("bitSize32:", result32)  // вывод 1 (не уместились)
-	fmt.Println("bitSize64:", result64)  // вывод  1.0000000012345678
-
-	str3 := "true"
-	res, _ := strconv.ParseBool(str3)
-	fmt.Printf("%T \n", res)
+	fmt.Println(fn(1203))
+	fn2 := func(x uint) (y uint) {
+		for k := uint(1); x > 0; x /= 10 {
+			if d := x % 10; d%2 == 0 && d != 0 {
+				y += k * d
+				k *= 10
+			}
+		}
+		if y == 0 {
+			y = 100
+		}
+		return y
+	}
+	fmt.Println(fn2(1203))
 }
