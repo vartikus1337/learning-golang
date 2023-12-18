@@ -1,52 +1,54 @@
 package main
 
 import (
-	"fmt"
-	"math/rand"
-	"time"
+   "fmt"
+   "sync"
 )
 
-func sleepyGopher(id int, c chan int) {
-	duration := time.Duration(rand.Intn(4000)) * time.Millisecond
-	fmt.Printf("gopher %d sleep for %v\n", id, duration)
-	time.Sleep(duration)
-	c <- id
-}
+const N = 10
 
 func main() {
-	timeout := time.After(2 * time.Second)
+   m := make(map[int]int)
 
-	c := make(chan int, 5)
+   wg := &sync.WaitGroup{}
+   mu := &sync.Mutex{}
+   wg.Add(N)
+   for i := 0; i < N; i++ {
+      go func() {
+         defer wg.Done()
+         mu.Lock()
+         m[i] = i
+         mu.Unlock()
+      }()
+   }
+   wg.Wait()
 
-	/**
-	Горутины для гоферов нужно создать заранее. Если делать это в for вместе с select, то select будет
-	блокировать дальнейшее исполнение и создание cледующей горутины
-	**/
+   i := 0
+   for a := range m {
+      fmt.Println("m", i, " - ", a)
+      i++
+   }
+}
 
-	for i := 0; i < 5; i++ {
-		go sleepyGopher(i, c)
-	}
+func main2() {
+	m := make(map[int]int)
 
-	for i := 0; i < 5; i++ {
-		select { // Оператор select
-		case gopherID := <-c: // Ждет, когда проснется гофер
-			fmt.Println("gopher ", gopherID, " has finished sleeping")
-		case <-timeout: // Ждет окончания времени
-			fmt.Println("my patience ran out")
+   wg := &sync.WaitGroup{}
+   mu := &sync.Mutex{}
+   wg.Add(N)
+   for i := 0; i < N; i++ {
+      go func(i int) {
+         defer wg.Done()
+         mu.Lock()
+         m[i] = i
+         mu.Unlock()
+      }(i)
+   }
+   wg.Wait()
 
-			return // Сдается и возвращается
-		}
-	}
-	// Select default
-	tick1 := time.After(time.Second)
-	tick2 := time.After(time.Second * 2)
-	select {
-	case <-tick1:
-		fmt.Println("Получено значение из первого канала")
-	case <-tick2:
-		fmt.Println("Получено значение из второго канала")
-	// Блок default выполнится раньше блока case - 1 секунда слишком много для Go // Если убрать default, то выполнится case 2
-	default: 
-		fmt.Println("Действие по умолчанию")
-	}
+   i := 0
+   for a := range m {
+      fmt.Println("m", i, " - ", a)
+      i++
+   }
 }
