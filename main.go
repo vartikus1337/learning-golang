@@ -3,65 +3,83 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
-func main1() {
-	var x int
+func howWork() {
+	// Timer
+	t := time.NewTimer(time.Second) // создаем новый таймер, который сработает через 1 секунду
+	go func() {
+		<-t.C // C - канал, который должен вернуть значение через заданное время
+	}()
+	t.Stop() // но мы можем остановить таймер и раньше установленного времени
+
+	t.Reset(time.Second * 2) // пока таймер не сработал, мы можем сбросить его, установив новый срок выполнения
+	<-t.C
+	// Ticker
+	// func NewTicker(d Duration) *Ticker // создаем новый Ticker
+	// func (t *Ticker) Stop() // останавливаем Ticker
+}
+
+func main() {
+	<-work()
+	/*
+	 * тик-так
+	 * тик-так
+	 * тик-так
+	 * тик-так
+	 */
+
+	tick := time.NewTicker(time.Second)
+	defer tick.Stop()
+
 	wg := new(sync.WaitGroup)
 
-	for i := 0; i < 1000; i++ { // Запускаем 1000 экземпляров горутины, увеличивающей счетчик на 1
+	for i := 1; i <= 5; i++ {
 		wg.Add(1)
-		go func(wg *sync.WaitGroup) { // Можно не передавать, это для наглядности
-			defer wg.Done()
-			x++ // Запускаются почти одновременно поэтому например 2 горунтины получили о от x обе
-		}(wg) // сплюсовали в итоге получили что x два раза присвоили 1, и пошло по накатанной
+		go worker(i, tick.C, wg)
 	}
 
 	wg.Wait()
-	fmt.Println(x) // Редко получаем 1000
+
+	/*
+	 * worker 1 выполнил работу
+	 * worker 5 выполнил работу
+	 * worker 3 выполнил работу
+	 * worker 4 выполнил работу
+	 * worker 2 выполнил работу
+	 */
 }
 
-// Как фиксить?
-
-func main2() {
-	var x int
-	wg := new(sync.WaitGroup)
-	mu := new(sync.Mutex)
-
-	for i := 0; i < 1000; i++ {
-		// Запускаем 1000 экземпляров горутины, увеличивающей счетчик на 1
-		wg.Add(1)
-		go func(wg *sync.WaitGroup, mu *sync.Mutex) { // Можно их и не передавать, это для наглядности
-			defer wg.Done()
-			mu.Lock()
-			x++
-			mu.Unlock()
-		}(wg, mu)
-	}
-
-	wg.Wait()
-	fmt.Println(x)
+func worker(id int, limit <-chan time.Time, wg *sync.WaitGroup) {
+	defer wg.Done()
+	<-limit
+	fmt.Printf("worker %d выполнил работу\n", id)
 }
 
-// От других используя потоки:
-func main3() {
-	wg := new(sync.WaitGroup)
-	// создаем буферизированный канал, чтобы не блокировать основной поток
-	ch := make(chan int, 1)
-	// передаем начальное значение в канал
-	ch <- 0
-	for i := 0; i < 1000; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			// Забираем значение из канала, инкрементируем его и отправляем обратно в тот же канал
-			ch <- <-ch + 1
-		}()
-	}
+func work() <-chan struct{} {
+	done := make(chan struct{}) // канал для синхронизации горутин
 
-	wg.Wait()
-	// Достаем конечное значение из канала
-	fmt.Println(<-ch)
+	go func() {
+		defer close(done) // синхронизирующий канал будет закрыт, когда функция завершит свою работу
+
+		stop := time.NewTimer(time.Second)
+
+		tick := time.NewTicker(time.Millisecond * 200)
+		defer tick.Stop() // освободим ресурсы, при завершении работы функции
+
+		for {
+			select {
+			case <-stop.C:
+				// stop - Timer, который через 1 секунду даст сигнал завершить работу
+				fmt.Println("Опа")
+				return
+			case <-tick.C:
+				// tick - Ticker, посылающий сигнал выполнить работу каждый 200 миллисекунд
+				fmt.Println("тик-так")
+			}
+		}
+	}()
+
+	return done
 }
-
-// Под капотом go использует мьютексы, поэтому через каналы менее эффективно
