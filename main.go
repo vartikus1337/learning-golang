@@ -3,51 +3,65 @@ package main
 import (
 	"fmt"
 	"sync"
-	"time"
 )
 
-func main() {
+func main1() {
+	var x int
 	wg := new(sync.WaitGroup)
 
-	for i := 0; i < 5; i++ {
-		wg.Add(1)      // Увеличиваем счетчик горутин в группе
-		go work(i, wg) // Вызываем функцию work в отдельной горутине
+	for i := 0; i < 1000; i++ { // Запускаем 1000 экземпляров горутины, увеличивающей счетчик на 1
+		wg.Add(1)
+		go func(wg *sync.WaitGroup) { // Можно не передавать, это для наглядности
+			defer wg.Done()
+			x++ // Запускаются почти одновременно поэтому например 2 горунтины получили о от x обе
+		}(wg) // сплюсовали в итоге получили что x два раза присвоили 1, и пошло по накатанной
 	}
 
-	wg.Wait() // ожидаем завершения всех горутин в группе
-	fmt.Println("Горутины завершили выполнение")
+	wg.Wait()
+	fmt.Println(x) // Редко получаем 1000
 }
 
-func work(id int, wg *sync.WaitGroup) {
-	defer wg.Done()
-	fmt.Printf("Горутина %d начала выполнение \n", id)
-	time.Sleep(2 * time.Second)
-	fmt.Printf("Горутина %d завершила выполнение \n", id)
-}
+// Как фиксить?
 
-// Внутри функции main (функцию объявлять не нужно), вам необходимо в отдельных горутинах вызвать функцию work() 10 раз и дождаться результатов выполнения вызванных функций.
-// https://stepik.org/lesson/345547/step/5?thread=solutions&unit=329291
-
-func answer() {
+func main2() {
+	var x int
 	wg := new(sync.WaitGroup)
-	for i := 0; i < 10; i++ {
+	mu := new(sync.Mutex)
+
+	for i := 0; i < 1000; i++ {
+		// Запускаем 1000 экземпляров горутины, увеличивающей счетчик на 1
 		wg.Add(1)
-		go func(wg *sync.WaitGroup) {
+		go func(wg *sync.WaitGroup, mu *sync.Mutex) { // Можно их и не передавать, это для наглядности
 			defer wg.Done()
-			// work()
-		}(wg)
+			mu.Lock()
+			x++
+			mu.Unlock()
+		}(wg, mu)
 	}
+
 	wg.Wait()
+	fmt.Println(x)
 }
 
-func correctAnswer() {
-	wg := &sync.WaitGroup{}
-	for i := 0; i < 10; i++ {
+// От других используя потоки:
+func main3() {
+	wg := new(sync.WaitGroup)
+	// создаем буферизированный канал, чтобы не блокировать основной поток
+	ch := make(chan int, 1)
+	// передаем начальное значение в канал
+	ch <- 0
+	for i := 0; i < 1000; i++ {
 		wg.Add(1)
-		go func(*sync.WaitGroup) {
+		go func() {
 			defer wg.Done()
-			// work()
-		}(wg)
+			// Забираем значение из канала, инкрементируем его и отправляем обратно в тот же канал
+			ch <- <-ch + 1
+		}()
 	}
+
 	wg.Wait()
+	// Достаем конечное значение из канала
+	fmt.Println(<-ch)
 }
+
+// Под капотом go использует мьютексы, поэтому через каналы менее эффективно
