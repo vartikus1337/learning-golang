@@ -2,84 +2,51 @@ package main
 
 import (
 	"fmt"
-	"sync"
+	"math/rand"
 	"time"
 )
 
-func howWork() {
-	// Timer
-	t := time.NewTimer(time.Second) // создаем новый таймер, который сработает через 1 секунду
-	go func() {
-		<-t.C // C - канал, который должен вернуть значение через заданное время
-	}()
-	t.Stop() // но мы можем остановить таймер и раньше установленного времени
-
-	t.Reset(time.Second * 2) // пока таймер не сработал, мы можем сбросить его, установив новый срок выполнения
-	<-t.C
-	// Ticker
-	// func NewTicker(d Duration) *Ticker // создаем новый Ticker
-	// func (t *Ticker) Stop() // останавливаем Ticker
+func sleepyGopher(id int, c chan int) {
+	duration := time.Duration(rand.Intn(4000)) * time.Millisecond
+	fmt.Printf("gopher %d sleep for %v\n", id, duration)
+	time.Sleep(duration)
+	c <- id
 }
 
 func main() {
-	<-work()
-	/*
-	 * тик-так
-	 * тик-так
-	 * тик-так
-	 * тик-так
-	 */
+	timeout := time.After(2 * time.Second)
 
-	tick := time.NewTicker(time.Second)
-	defer tick.Stop()
+	c := make(chan int, 5)
 
-	wg := new(sync.WaitGroup)
+	/**
+	Горутины для гоферов нужно создать заранее. Если делать это в for вместе с select, то select будет
+	блокировать дальнейшее исполнение и создание cледующей горутины
+	**/
 
-	for i := 1; i <= 5; i++ {
-		wg.Add(1)
-		go worker(i, tick.C, wg)
+	for i := 0; i < 5; i++ {
+		go sleepyGopher(i, c)
 	}
 
-	wg.Wait()
+	for i := 0; i < 5; i++ {
+		select { // Оператор select
+		case gopherID := <-c: // Ждет, когда проснется гофер
+			fmt.Println("gopher ", gopherID, " has finished sleeping")
+		case <-timeout: // Ждет окончания времени
+			fmt.Println("my patience ran out")
 
-	/*
-	 * worker 1 выполнил работу
-	 * worker 5 выполнил работу
-	 * worker 3 выполнил работу
-	 * worker 4 выполнил работу
-	 * worker 2 выполнил работу
-	 */
-}
-
-func worker(id int, limit <-chan time.Time, wg *sync.WaitGroup) {
-	defer wg.Done()
-	<-limit
-	fmt.Printf("worker %d выполнил работу\n", id)
-}
-
-func work() <-chan struct{} {
-	done := make(chan struct{}) // канал для синхронизации горутин
-
-	go func() {
-		defer close(done) // синхронизирующий канал будет закрыт, когда функция завершит свою работу
-
-		stop := time.NewTimer(time.Second)
-
-		tick := time.NewTicker(time.Millisecond * 200)
-		defer tick.Stop() // освободим ресурсы, при завершении работы функции
-
-		for {
-			select {
-			case <-stop.C:
-				// stop - Timer, который через 1 секунду даст сигнал завершить работу
-				fmt.Println("Опа")
-				return
-			case <-tick.C:
-				// tick - Ticker, посылающий сигнал выполнить работу каждый 200 миллисекунд
-				fmt.Println("тик-так")
-			}
+			return // Сдается и возвращается
 		}
-	}()
-
-	return done
+	}
+	// Select default
+	tick1 := time.After(time.Second)
+	tick2 := time.After(time.Second * 2)
+	select {
+	case <-tick1:
+		fmt.Println("Получено значение из первого канала")
+	case <-tick2:
+		fmt.Println("Получено значение из второго канала")
+	// Блок default выполнится раньше блока case - 1 секунда слишком много для Go // Если убрать default, то выполнится case 2
+	default: 
+		fmt.Println("Действие по умолчанию")
+	}
 }
