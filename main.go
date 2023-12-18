@@ -1,102 +1,64 @@
-// Напишите элемент конвейера (функцию), что запоминает предыдущее значение и отправляет значения на следующий этап конвейера
-//  только если оно отличается от того, что пришло ранее.
-
-// Ваша функция должна принимать два канала - inputStream и outputStream, в первый вы будете получать строки, во второй вы должны отправлять
-//  значения без повторов. В итоге в outputStream должны остаться значения, которые не повторяются подряд. Не забудьте закрыть канал ;)
-
-// Функция должна называться removeDuplicates()
-
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
-func fillStream(c chan string, s ...string) {
-	for _, s := range s {
-		c <- s
-	}
-	close(c)
+func main1() {
+	done := make(chan struct{}) // Канал используется для синхронизации
+	go myFunc1(done)
+	<-done
 }
 
-func anotherFillInMainFunc() {
-	inputStream := make(chan string)
-	outputStream := make(chan string)
-	go removeDuplicates(inputStream, outputStream)
-
-	go func() {
-		defer close(inputStream)
-
-		for _, r := range "112334456" {
-			inputStream <- string(r)
-		}
-	}()
-
-	for x := range outputStream {
-		fmt.Print(x)
-	}
+func myFunc1(done chan struct{}) {
+	fmt.Println("hello")
+	close(done)
 }
 
-func seeInChan(c chan string) {
-	for value := range c {
-		fmt.Println(value)
-	}
-}
+// Для синхронизации выведен шаблон:
 
 func main() {
-	inputStream := make(chan string)
-	outputStream := make(chan string)
-	go fillStream(inputStream, "a", "b", "d", "b", "b", "d")
-	go removeDuplicates(inputStream, outputStream)
-	seeInChan(outputStream)
+	<-myFunc()
 }
 
-// Не увидел что при вводе они идут отсортированными (у других под это решение)
-// Поэтому проверял на дупликацию элементов которые уже прошли
-// Получается перевыполнил)
-
-func removeDuplicates(inputStream chan string, outputStream chan string) {
-	var wall []string
-	for value := range inputStream {
-		if contains(wall, value) == false {
-			wall = append(wall, value)
-		}
-	}
-	for _, value := range wall {
-		outputStream <- value
-	}
-	close(outputStream)
+func myFunc() <-chan struct{} {
+	done := make(chan struct{})
+	go func() {
+		fmt.Println("hello")
+		close(done)
+	}()
+	return done
 }
 
-func contains(wall []string, value string) bool {
-	for _, v := range wall {
-		if v == value {
-			return true
-		}
-	}
-	return false
+//  канал для синхронизации создается самой функцией myFunc(), полезная работа выполняется в отдельной горутине
+// <-chan struct{}. Стрелка слева от ключевого слова chan означает, что возвращаемый канал предназначен только для чтения из него
+//  вернуть из функции или передать в нее в качестве аргумента канал, предназначенный только для записи - chan<- struct{}
+
+// Внутри функции main (функцию объявлять не нужно), вам необходимо в отдельной горутине вызвать функцию work() и дождаться результатов ее выполнения.
+// Функция work() ничего не принимает и не возвращает. https://stepik.org/lesson/345547/step/3?thread=solutions&unit=329291
+
+func answer() {
+	done := make(chan struct{})
+	go func() {
+		// work()
+		close(done) // Лучше делать defer close(done) (на будущее)
+	}()
+	<-done
 }
 
-// Как другие работают с потоками:
-
-func removeDuplicates2(in chan string, out chan string) {
-	var buf string
-	for v := range in {
-		if buf != v {
-			out <- v
-		}
-		buf = v
-	}
-	close(out)
+//  как синхронизировать не синхронизированное)
+func explanation() {
+	done := make(chan struct{}) // создаем канал
+	go func(ch chan struct{}) { // создаем анонимную горутину
+		// work()
+		close(ch) // канал закроется после выполнения work()
+	}(done) // передаем канал в анонимную горутину и запускаем ее
+	<-done
 }
 
-func removeDuplicates3(inputStream, outputStream chan string) {
-	var prev string
-	for v := range inputStream {
-		if v != prev {
-			outputStream <- v
-			prev = v
-		}
-	}
-	close(outputStream)
+func explanationReboot() {
+	done := make(chan struct{})
+	go func() {
+		// work()
+        close(done)
+    }()
+	<-done
 }
